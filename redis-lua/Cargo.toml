@@ -1,0 +1,11 @@
+[package]
+name = "redis-lua"
+version = "0.1.0"
+authors = ["YushiOMOTE <yushiomote@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+redis-lua-derive = { path = "../redis-lua-derive" }
+proc-macro-hack = "0.5"
+redis = "0.13"
+futures = "0.1"
