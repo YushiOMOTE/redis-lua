@@ -1,6 +1,6 @@
 use crate::{
-    proc_macro::{Delimiter, Span, TokenStream, TokenTree},
-    token::{retokenize, Token, Tokens},
+    proc_macro::{Span, TokenStream, TokenTree},
+    token::retokenize,
 };
 use std::collections::BTreeMap;
 use syn::Ident;

@@ -8,7 +8,7 @@ pub struct Script<F> {
 
 impl<F> Script<F>
 where
-    F: Fn(ScriptInvocation) -> ScriptInvocation,
+    F: FnOnce(ScriptInvocation) -> ScriptInvocation,
 {
     pub fn new(script: &str, call: F) -> Self {
         Self {
@@ -17,11 +17,11 @@ where
         }
     }
 
-    pub fn invoke<T: FromRedisValue>(&self, con: &mut dyn redis::ConnectionLike) -> RedisResult<T> {
+    pub fn invoke<T: FromRedisValue>(self, con: &mut dyn redis::ConnectionLike) -> RedisResult<T> {
         (self.call)(self.script.prepare_invoke()).invoke(con)
     }
 
-    pub fn invoke_async<C, T>(&self, con: C) -> impl Future<Item = (C, T), Error = RedisError>
+    pub fn invoke_async<C, T>(self, con: C) -> impl Future<Item = (C, T), Error = RedisError>
     where
         C: redis::aio::ConnectionLike + Clone + Send + 'static,
         T: FromRedisValue + Send + 'static,

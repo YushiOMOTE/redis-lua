@@ -14,9 +14,6 @@ fn main() {
         return @msg..": "..@value.."*"..@weight.."="..res;
     );
 
-    // Call multiple times
-    let v: String = script.invoke(&mut con).unwrap();
-    println!("return: {}", v);
     let v: String = script.invoke(&mut con).unwrap();
     println!("return: {}", v);
 

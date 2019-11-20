@@ -48,7 +48,7 @@ pub fn lua(input: TokenStream) -> TokenStream {
             let arg = arg.as_rust();
             // TODO: Remove `clone` requirement
             quote! {
-                invoke.arg(#arg.clone());
+                invoke.arg(#arg);
             }
         })
         .collect();
