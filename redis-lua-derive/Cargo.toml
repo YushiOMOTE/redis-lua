@@ -10,10 +10,9 @@ proc-macro = true
 [dependencies]
 quote = "1.0"
 mktemp = "0.4"
-proc-macro2 = "1.0"
 selene-lib = "0.4"
 full_moon = "0.4.0-rc.12"
 toml = "0.5"
+proc-macro2 = "1.0"
 proc-macro-hack = "0.5"
-syn = "1.0"
 itertools = "0.8"

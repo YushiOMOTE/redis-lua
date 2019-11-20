@@ -3,18 +3,17 @@ use crate::{
     token::retokenize,
 };
 use std::collections::BTreeMap;
-use syn::Ident;
 
 #[derive(Debug, Clone)]
 pub struct Arg {
     key: String,
-    rust: Ident,
+    rust: TokenTree,
     lua: String,
     argv: String,
 }
 
 impl Arg {
-    fn new(key: String, rust: Ident, lua: String, argv: String) -> Self {
+    fn new(key: String, rust: TokenTree, lua: String, argv: String) -> Self {
         Self {
             key,
             rust,
@@ -27,7 +26,7 @@ impl Arg {
         &self.key
     }
 
-    pub fn as_rust(&self) -> &Ident {
+    pub fn as_rust(&self) -> &TokenTree {
         &self.rust
     }
 
@@ -54,7 +53,7 @@ impl Args {
         match self.0.iter().find(|arg| arg.key() == &key) {
             Some(arg) => arg.clone(),
             None => {
-                let rust = syn::parse(vec![token.clone()].into_iter().collect()).unwrap();
+                let rust = token.clone();
                 let lua = format!("__internal_from_args_{}", self.0.len());
                 let argv = format!("ARGV[{}]", self.0.len() + 1);
 

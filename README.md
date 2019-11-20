@@ -45,3 +45,22 @@ error: in lua: `x` is not defined (undefined_variable)
 
 error: aborting due to previous error                      
 ```
+
+### Reusing scripts
+
+```rust
+let script = lua_f!(
+    local v = @a * @b * @c
+    if v > 50 then
+        return v .. " > 50"
+    else
+        return v .. " <= 50"
+    end
+);
+
+for i in 0..4 {
+    // You can call script multiple times with different parameters.
+    let r: String = script.a(15).b(i).c(3).invoke(&mut con).unwrap();
+    println!("{}", r);
+}
+```
