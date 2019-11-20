@@ -103,8 +103,8 @@ impl Checker {
                     Some(&token),
                 );
             }
-            Err(e) => {
-                return emit_parse_err(script, &e.to_string(), None);
+            Err(_) => {
+                return emit_parse_err(script, "cannot tokenize lua script", None);
             }
         };
 
