@@ -1,2 +1,2 @@
 [workspace]
-members = ["redis-lua-derive", "redis-lua"]
+members = ["redis-lua-macro", "redis-lua"]
