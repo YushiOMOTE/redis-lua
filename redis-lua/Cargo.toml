@@ -5,7 +5,7 @@ authors = ["YushiOMOTE <yushiomote@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-redis-lua-derive = { path = "../redis-lua-derive" }
+redis-lua-macro = { path = "../redis-lua-macro" }
 proc-macro-hack = "0.5"
 redis = "0.13"
 futures = "0.1"
