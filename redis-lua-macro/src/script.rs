@@ -1,6 +1,6 @@
 use crate::{
     proc_macro::{Span, TokenStream, TokenTree},
-    token::retokenize,
+    token::{retokenize, Pos},
 };
 use std::collections::BTreeMap;
 
@@ -90,6 +90,8 @@ impl Script {
         // Script argument lists (i.e. `ARGV`).
         let mut args = Args::new();
 
+        let mut pos = Option::<Pos>::None;
+
         for t in tokens {
             let (code, span) = match t.arg() {
                 Some(t) if convert_args => {
@@ -102,13 +104,30 @@ impl Script {
                 _ => (t.to_string(), t.span()),
             };
 
+            let (line, col) = (t.start().line, t.start().column);
+            let (prev_line, prev_col) = pos
+                .take()
+                .map(|lc| (lc.line, lc.column))
+                .unwrap_or_else(|| (line, col));
+
+            if line > prev_line {
+                script.push_str("\n");
+            } else if line == prev_line {
+                for _ in 0..col.saturating_sub(prev_col) {
+                    script.push_str(" ");
+                }
+            } else {
+                // This case happens only for bracket.
+            }
             let begin = script.len();
             script.push_str(&code.to_string());
-            script.push_str(" ");
             let end = script.len();
+
             for i in begin..=end {
                 spans.insert(i, span.clone());
             }
+
+            pos = Some(t.end());
         }
 
         let script = script.trim_end().to_string();
@@ -134,7 +153,7 @@ impl Script {
             "".into()
         };
 
-        println!("Lua script: {}", script);
+        println!("--- Lua script ---\n{}\n-------", script);
 
         Self {
             script,
