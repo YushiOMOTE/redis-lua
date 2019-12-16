@@ -26,8 +26,8 @@ impl Token {
         self.1.span()
     }
 
-    fn is_dot(&self) -> bool {
-        self.0 == "."
+    fn is(&self, s: &str) -> bool {
+        self.0 == s
     }
 
     fn is_marker(&self) -> bool {
@@ -54,10 +54,14 @@ pub fn retokenize(tt: TokenStream) -> Tokens {
                     // `@` + `ident` => `@ident`
                     let t = iter.next().expect("@ must trail an identifier");
                     Some(t.rename(&format!("@{}", t)))
-                } else if t.is_dot() && iter.peek().map(|t| t.is_dot()).unwrap_or(false) {
+                } else if t.is(".") && iter.peek().map(|t| t.is(".")).unwrap_or(false) {
                     // `.` + `.` => `..`
                     iter.next().unwrap();
                     Some(t.rename(".."))
+                } else if t.is("=") && iter.peek().map(|t| t.is("=")).unwrap_or(false) {
+                    // `=` + `=` => `==`
+                    iter.next().unwrap();
+                    Some(t.rename("=="))
                 } else {
                     Some(t)
                 }
