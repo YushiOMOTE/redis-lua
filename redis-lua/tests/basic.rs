@@ -1,22 +1,5 @@
-use redis::ScriptInvocation;
-use redis_lua::lua;
-
-fn run<T: redis::FromRedisValue, F>(script: redis_lua::Script<F>) -> T
-where
-    F: FnOnce(ScriptInvocation) -> ScriptInvocation,
-{
-    let cli = redis::Client::open("redis://127.0.0.1").unwrap();
-    let mut con = cli.get_connection().unwrap();
-    script.invoke(&mut con).unwrap()
-}
-
-macro_rules! test {
-    ($type:ty { $($t:tt)* }, $exp:expr) => {{
-        assert_eq!(run::<$type, _>(lua! {
-            $($t)*
-        }), $exp)
-    }}
-}
+#[macro_use]
+mod util;
 
 #[test]
 fn ops_assign() {
@@ -470,14 +453,6 @@ fn table() {
 
 #[test]
 fn func() {
-    test!(usize {
-        redis.log(redis.LOG_DEBUG, "debug");
-        redis.log(redis.LOG_VERBOSE, "verbose");
-        redis.log(redis.LOG_NOTICE, "notice");
-        redis.log(redis.LOG_WARNING, "warning");
-        return 0;
-    }, 0usize);
-
     test!(Vec<String> {
         local logtable = {}
 
