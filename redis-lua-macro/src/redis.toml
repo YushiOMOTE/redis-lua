@@ -683,3 +683,23 @@ property = true
 
 [redis.LOG_WARNING]
 property = true
+
+[[redis.sha1hex.args]]
+type = "any"
+required = true
+
+[[cjson.encode.args]]
+type = "any"
+required = true
+
+[[cjson.decode.args]]
+type = "any"
+required = true
+
+[[cmsgpack.pack.args]]
+type = "any"
+required = true
+
+[[cmsgpack.unpack.args]]
+type = "any"
+required = true
