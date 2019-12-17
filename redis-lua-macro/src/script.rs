@@ -1,41 +1,57 @@
 use crate::{
     proc_macro::{Span, TokenStream, TokenTree},
-    token::{retokenize, Pos},
+    token::{retokenize, Pos, Token},
 };
 use std::collections::BTreeMap;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ArgType {
+    Cap,
+    Var,
+}
+
 #[derive(Debug, Clone)]
 pub struct Arg {
-    key: String,
+    key: Token,
     rust: TokenTree,
     lua: String,
     argv: String,
+    atype: ArgType,
 }
 
 impl Arg {
-    fn new(key: String, rust: TokenTree, lua: String, argv: String) -> Self {
+    fn new(key: Token, rust: TokenTree, lua: String, argv: String, atype: ArgType) -> Self {
         Self {
             key,
             rust,
             lua,
             argv,
+            atype,
         }
     }
 
-    pub fn key(&self) -> &str {
+    /// Token string inside `lua!`
+    pub fn key(&self) -> &Token {
         &self.key
     }
 
+    /// As rust variable, e.g. `x`
     pub fn as_rust(&self) -> &TokenTree {
         &self.rust
     }
 
+    /// As lua internal variable, e.g. `__internal_from_args1`
     pub fn as_lua(&self) -> &str {
         &self.lua
     }
 
+    /// As `ARGV` parameter, e.g. `ARGV[1]`
     pub fn as_argv(&self) -> &str {
         &self.argv
+    }
+
+    pub fn atype(&self) -> ArgType {
+        self.atype
     }
 }
 
@@ -47,17 +63,23 @@ impl Args {
         Self(Vec::new())
     }
 
-    pub fn add(&mut self, token: &TokenTree) -> Arg {
-        let key = token.to_string();
+    pub fn add(&mut self, token: &Token) -> Arg {
+        let tt = token.tree();
+        let key = token.clone();
 
         match self.0.iter().find(|arg| arg.key() == &key) {
             Some(arg) => arg.clone(),
             None => {
-                let rust = token.clone();
+                let rust = tt.clone();
                 let lua = format!("__internal_from_args_{}", self.0.len());
                 let argv = format!("ARGV[{}]", self.0.len() + 1);
+                let atype = if token.is_cap() {
+                    ArgType::Cap
+                } else {
+                    ArgType::Var
+                };
 
-                let arg = Arg::new(key, rust, lua, argv);
+                let arg = Arg::new(key, rust, lua, argv, atype);
                 self.0.push(arg.clone());
                 arg
             }
@@ -93,16 +115,23 @@ impl Script {
         let mut pos = Option::<Pos>::None;
 
         for t in tokens {
-            let (code, span) = match t.arg() {
-                Some(t) if convert_args => {
-                    // Script argument like `@ident` is converted to
-                    // a special variable like `__internal_0` in lua.
-
-                    let arg = args.add(t.tree());
-                    (arg.as_lua().into(), t.span())
-                }
-                _ => (t.to_string(), t.span()),
+            let (code, span) = if t.is_arg() && convert_args {
+                let arg = args.add(&t);
+                (arg.as_lua().into(), t.span())
+            } else {
+                (t.to_string(), t.span())
             };
+
+            // match t.arg() {
+            //     Some(t) if convert_args => {
+            //         // Script argument like `@ident` is converted to
+            //         // a special variable like `__internal_0` in lua.
+
+            //         let arg = args.add(t.tree());
+            //         (arg.as_lua().into(), t.span())
+            //     }
+            //     _ => (t.to_string(), t.span()),
+            // };
 
             let (line, col) = (t.start().line, t.start().column);
             let (prev_line, prev_col) = pos
@@ -116,8 +145,6 @@ impl Script {
                 for _ in 0..col.saturating_sub(prev_col) {
                     script.push_str(" ");
                 }
-            } else {
-                // This case happens only for bracket.
             }
             let begin = script.len();
             script.push_str(&code.to_string());

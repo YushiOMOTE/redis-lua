@@ -37,21 +37,42 @@ impl From<LineColumn> for Pos {
     }
 }
 
+/// Attribute of token.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum TokenAttr {
+    /// No attribute
+    None,
+    /// Starts with `$`
+    Var,
+    /// Starts with `@`
+    Cap,
+}
+
 #[derive(Clone, Debug)]
 pub struct Token {
     source: String,
     tree: TokenTree,
     start: Pos,
     end: Pos,
+    attr: TokenAttr,
 }
 
+impl std::cmp::PartialEq for Token {
+    fn eq(&self, other: &Self) -> bool {
+        self.source == other.source && self.attr == other.attr
+    }
+}
+
+impl std::cmp::Eq for Token {}
+
 impl Token {
-    fn new(source: String, tree: TokenTree) -> Self {
+    fn new(tree: TokenTree) -> Self {
         Self {
-            source,
+            source: tree.to_string(),
             start: tree.span().start().into(),
             end: tree.span().end().into(),
             tree,
+            attr: TokenAttr::None,
         }
     }
 
@@ -69,6 +90,7 @@ impl Token {
             tree,
             start,
             end,
+            attr: TokenAttr::None,
         }
     }
 
@@ -76,12 +98,16 @@ impl Token {
         &self.tree
     }
 
-    pub fn arg(&self) -> Option<Token> {
-        if self.source.starts_with("@") {
-            Some(self.rename(&self.source[1..]))
-        } else {
-            None
-        }
+    pub fn is_arg(&self) -> bool {
+        self.is_var() || self.is_cap()
+    }
+
+    pub fn is_var(&self) -> bool {
+        self.attr == TokenAttr::Var
+    }
+
+    pub fn is_cap(&self) -> bool {
+        self.attr == TokenAttr::Cap
     }
 
     pub fn span(&self) -> Span {
@@ -96,12 +122,13 @@ impl Token {
         self.end
     }
 
-    fn is_marker(&self) -> bool {
-        self.source == "@"
+    fn is(&self, s: &str) -> bool {
+        self.source == s
     }
 
-    fn rename(&self, s: &str) -> Self {
-        Token::new(s.into(), self.tree.clone())
+    fn attr(mut self, attr: TokenAttr) -> Self {
+        self.attr = attr;
+        self
     }
 }
 
@@ -115,11 +142,16 @@ pub fn retokenize(tt: TokenStream) -> Tokens {
             .flatten()
             .peekable()
             .batching(|iter| {
+                // Find variable/capture tokens
                 let t = iter.next()?;
-                if t.is_marker() {
+                if t.is("@") {
                     // `@` + `ident` => `@ident`
                     let t = iter.next().expect("@ must trail an identifier");
-                    Some(t.rename(&format!("@{}", t)))
+                    Some(t.attr(TokenAttr::Cap))
+                } else if t.is("$") {
+                    // `$` + `ident` => `@ident`
+                    let t = iter.next().expect("$ must trail an identifier");
+                    Some(t.attr(TokenAttr::Var))
                 } else {
                     Some(t)
                 }
@@ -159,7 +191,7 @@ impl From<TokenTree> for Tokens {
                     .chain(vec![Token::new_delim(e, tt.clone(), false)])
                     .collect()
             }
-            _ => vec![Token::new(tt.to_string(), tt)],
+            _ => vec![Token::new(tt)],
         };
         Tokens(tts)
     }
