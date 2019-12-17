@@ -90,6 +90,10 @@ fn ops_assign() {
         local x, y = foo()
         return {x, y}
     }, vec![1, 2]);
+    test!(Vec<usize> {
+        local s, e = string.find("hello Lua users", "Lua");
+        return {s, e}
+    }, vec![7, 9]);
 
     // swap
     test!(Vec<usize> {
@@ -278,70 +282,137 @@ fn table_ctor() {
           vec!["one".to_owned(), "two".into(), "three".into()]);
 }
 
-// #[test]
-// fn ctrl_while() {
-//     test!(bool {
-//         local r = "prefix";
-//         local l = {"a", "b", "c"};
-//         while l do
-//             r = r .. l.value
-//     }, true);
-// }
-
 #[test]
-fn func1() {
+fn ctrl() {
     test!(usize {
-        redis.log(redis.LOG_DEBUG, "debug");
-        redis.log(redis.LOG_VERBOSE, "verbose");
-        redis.log(redis.LOG_NOTICE, "notice");
-        redis.log(redis.LOG_WARNING, "warning");
-        return 0;
-    }, 0usize);
-}
+        local a = -10;
+        if a < 0 then a = 0 end;
+        return a
+    }, 0);
 
-#[test]
-fn func2() {
-    test!(Vec<String> {
-        local logtable = {}
+    test!(isize {
+        local a = -10;
+        local b = 20;
+        if a < b then return a else return b end;
+    }, -10);
 
-        local function logit(msg)
-            logtable[#logtable+1] = msg
+    test!(isize {
+        local op = "*";
+        local a = 2;
+        local b = 4;
+        local r = 0;
+        if op == "+" then
+            r = a + b
+        elseif op == "-" then
+            r = a - b
+        elseif op == "*" then
+            r = a*b
+        elseif op == "/" then
+            r = a/b
+        else
+            return r;
         end
+        return r;
+    }, 8);
 
-        logit("foo")
-        logit("bar")
+    test!(isize {
+        local s = 0;
+        local a = {1, 2, 4, 8};
+        local i = 1;
+        while a[i] do
+            s = s + a[i];
+            i = i + 1
+        end;
+        return s
+    }, 15);
 
-        return logtable
-    }, vec!["foo".to_owned(), "bar".into()]);
+    test!(usize {
+        local a = {1,2,3,4,5};
+        local i = 1;
+        local s = 0;
+        repeat
+            s = s + a[i];
+            i = i + 1;
+        until i == 6
+        return s
+    }, 15);
+
+    test!(usize {
+        local s = 0
+        for v = 0,10,2 do
+            s = s + v
+        end
+        return s
+    }, 2 + 4 + 6 + 8 + 10);
+
+    test!(usize {
+        local s = 0;
+        for v = 0,10 do
+            s = s + v;
+        end;
+        return s
+    }, 55);
+
+    test!(usize {
+        local a = {1,3,3,4,2,5,6,1,3,4};
+        local value = 5;
+        local found = nil
+        for i=1,10 do
+            if a[i] == value then
+                found = i      -- save value of 'i'
+                break
+            end
+        end
+        return found
+    }, 6);
+
+    test!(usize {
+        local a = {3, 3, 3};
+        local s = 0;
+        for i,v in ipairs(a) do
+            s = s + i + v;
+        end
+        return s
+    }, 15);
+
+    test!(usize {
+        local a = {3, 3, 3};
+        local s = 0;
+        for k in pairs(a) do
+            s = s + k;
+        end
+        return s
+    }, 6);
+
+    test!(usize {
+        do return 1 end
+        return 2
+    }, 1);
 }
 
 #[test]
-fn bool1() {
+fn types_bool() {
     test!(bool { return true }, true);
     test!(bool { return false }, false);
-}
-
-#[test]
-fn bool2() {
     test!(bool { return 1 }, true);
     test!(bool { return 0 }, false);
     test!(bool { return nil }, false);
 }
 
 #[test]
-fn num1() {
+fn types_num() {
     test!(usize { return 4 }, 4);
     // Indeed, Redis protocol doesn't support floating points.
     test!(f64 { return 0.4 }, 0.0);
     test!(bool { return 0.4 == 0.4 }, true);
     test!(bool { return 0.457e-3 == 0.457e-3 }, true);
     test!(bool { return 0.3e12 == 0.3e12 }, true);
-    // FIXME: Seems not to be supported by full-moon at the moment.
+    // FIXME: full-moon cannot parse at the moment.
     // test!(bool { return 5e+20 == 5e+20 }, true);
 }
 
 #[test]
-fn string1() {
+fn types_string() {
     test!(String { return "one string" }, "one string");
     // Indeed, a single quotation is not supported by Rust.
     // test!(String { return 'one string' }, "one string");
@@ -353,10 +424,7 @@ fn string1() {
         },
         "another string"
     );
-}
 
-#[test]
-fn string2() {
     test!(String { return "one line\nnext\"in quotes\", 'in quotes'" },
           "one line\nnext\"in quotes\", 'in quotes'");
 
@@ -376,10 +444,7 @@ fn string2() {
     //         return page
     // });
     // println!("{}", s);
-}
 
-#[test]
-fn string3() {
     test!(usize { return "10" + 1 }, 11);
     test!(String { return "10 + 1" }, "10 + 1");
     test!(bool { return "-5.3e-10"*"2" == -1.06e-09 }, true);
@@ -401,4 +466,70 @@ fn table() {
         for i=1,1000 do a[i] = i * 2 end
         return a
     }, v);
+}
+
+#[test]
+fn func() {
+    test!(usize {
+        redis.log(redis.LOG_DEBUG, "debug");
+        redis.log(redis.LOG_VERBOSE, "verbose");
+        redis.log(redis.LOG_NOTICE, "notice");
+        redis.log(redis.LOG_WARNING, "warning");
+        return 0;
+    }, 0usize);
+
+    test!(Vec<String> {
+        local logtable = {}
+
+        local function logit(msg)
+            logtable[#logtable+1] = msg
+            end
+
+            logit("foo")
+            logit("bar")
+
+            return logtable
+    }, vec!["foo".to_owned(), "bar".into()]);
+
+    test!(Vec<String> {
+        local network = {
+            {name = "grauna",  IP = "210.26.30.34"},
+            {name = "arraial", IP = "210.26.30.23"},
+            {name = "lua",     IP = "210.26.23.12"},
+            {name = "derain",  IP = "210.26.23.20"},
+        };
+        table.sort(network, function (a,b)
+            return (a.name > b.name)
+        end);
+        local res = {}
+        for i,v in ipairs(network) do
+            res[i] = v.IP
+        end
+        return res
+    }, vec!["210.26.23.12".to_owned(), "210.26.30.34".into(), "210.26.23.20".into(), "210.26.30.23".into()]);
+
+    // variadic args
+    //
+    // FIXME: selene complains that arg not found.
+    // test!(String {
+    //     function print (...)
+    //         local printResult = ""
+    //         for i,v in ipairs(arg) do
+    //             printResult = printResult .. tostring(v) .. "\t"
+    //         end
+    //         printResult = printResult .. "\n"
+    //     end
+    //     return print("sa", "wa", "ki")
+    // }, "sawaki");
+
+    // named args
+    test!(String {
+        local function rename (arg)
+            return "old=" .. arg.old .. ",new=" .. arg.new
+        end
+        return rename{old="a", new="b"}
+    }, "old=a,new=b");
+
+    // TODO: Test closure
+    // TODO: Test methods
 }
