@@ -663,3 +663,43 @@ type = "table"
 [[table.sort.args]]
 type = "function"
 required = false
+
+[[redis.log.args]]
+type = "number"
+required = true
+
+[[redis.log.args]]
+type = "..."
+required = true
+
+[redis.LOG_DEBUG]
+property = true
+
+[redis.LOG_VERBOSE]
+property = true
+
+[redis.LOG_NOTICE]
+property = true
+
+[redis.LOG_WARNING]
+property = true
+
+[[redis.sha1hex.args]]
+type = "any"
+required = true
+
+[[cjson.encode.args]]
+type = "any"
+required = true
+
+[[cjson.decode.args]]
+type = "any"
+required = true
+
+[[cmsgpack.pack.args]]
+type = "any"
+required = true
+
+[[cmsgpack.unpack.args]]
+type = "any"
+required = true
