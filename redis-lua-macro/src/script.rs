@@ -122,17 +122,6 @@ impl Script {
                 (t.to_string(), t.span())
             };
 
-            // match t.arg() {
-            //     Some(t) if convert_args => {
-            //         // Script argument like `@ident` is converted to
-            //         // a special variable like `__internal_0` in lua.
-
-            //         let arg = args.add(t.tree());
-            //         (arg.as_lua().into(), t.span())
-            //     }
-            //     _ => (t.to_string(), t.span()),
-            // };
-
             let (line, col) = (t.start().line, t.start().column);
             let (prev_line, prev_col) = pos
                 .take()
