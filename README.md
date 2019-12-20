@@ -1,9 +1,10 @@
 # redis-lua
 
-Lua scripting helper for redis-rs.
+Lua scripting helper for [redis-rs](https://github.com/mitsuhiko/redis-rs).
 
-* Compile-time lint for redis lua script.
-* Capturing rust variables in lua script.
+* Compile-time lint for Redis Lua script.
+* Capturing Rust variables in Lua script.
+* Safe argument substitution.
 
 ```rust
 use redis_lua::lua;
@@ -26,7 +27,7 @@ fn main() {
 
 ### Reporting errors
 
-Errors in the lua script (such as undefined variables) are detected at compile time.
+Errors in the Lua script (such as undefined variables) are detected at compile time.
 
 ```rust
     let script = lua!(
@@ -46,21 +47,26 @@ error: in lua: `x` is not defined (undefined_variable)
 error: aborting due to previous error                      
 ```
 
-### Reusing scripts
+### Argument substitution
+
+* `@x` to capture a Rust variable (by move).
+* `$x` to substitute a value later.
 
 ```rust
-let script = lua_f!(
-    local v = @a * @b * @c
-    if v > 50 then
-        return v .. " > 50"
+let x = 50;
+
+let script = lua!(
+    local v = $a * $b * $c
+    if v > $@ then
+        return v .. " is large"
     else
-        return v .. " <= 50"
+        return v .. " is small"
     end
 );
 
 for i in 0..4 {
-    // You can call script multiple times with different parameters.
-    let r: String = script.a(15).b(i).c(3).invoke(&mut con).unwrap();
+    // You can `clone()` the script to call it multiple times with different parameters.
+    let r: String = script.clone().a(15).b(i).c(3).invoke(&mut con).unwrap();
     println!("{}", r);
 }
 ```
