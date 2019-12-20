@@ -672,6 +672,10 @@ required = true
 type = "..."
 required = true
 
+[[redis.call.args]]
+type = "..."
+required = true
+
 [redis.LOG_DEBUG]
 property = true
 
