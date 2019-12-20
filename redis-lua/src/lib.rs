@@ -4,4 +4,4 @@ mod script;
 
 #[proc_macro_hack]
 pub use redis_lua_macro::{lua, lua_s};
-pub use script::*;
+pub use script::{gen_script, Info, Script, ScriptJoin, TakeScript};
