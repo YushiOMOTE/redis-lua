@@ -30,9 +30,9 @@ fn main() {
 Errors in the Lua script (such as undefined variables) are detected at compile time.
 
 ```rust
-    let script = lua!(
-        return @msg .. " / " .. @num .. x
-    );
+let script = lua!(
+    return @msg .. " / " .. @num .. x
+);
 ```
 
 ```
@@ -48,6 +48,8 @@ error: aborting due to previous error
 ```
 
 ### Argument substitution
+
+Supports the two ways to pass values from Rust to scripts.
 
 * `@x` to capture a Rust variable (by move).
 * `$x` to substitute a value later.
@@ -69,4 +71,27 @@ for i in 0..4 {
     let r: String = script.clone().a(15).b(i).c(3).invoke(&mut con).unwrap();
     println!("{}", r);
 }
+```
+
+#### Script reusability
+
+Script objects returned by `lua!` are clonable if the captured variables are clonable.
+
+### Joining scripts
+
+`+` joins two scripts. The scripts are treated as a single script and evaluted atomically in Redis.
+The return value of the first script is discarded. Only the return value of the last script is replied by Redis.
+
+```rust
+let script1 = redis_lua::lua!(
+    return redis.call("set", "a", $x);
+);
+let script2 = redis_lua::lua!(
+    return redis.call("set", "b", $y);
+);
+let script = script1 + script2;
+
+let mut cli = redis::Client::open("redis://127.0.0.1").unwrap();
+let res: String = script.x(20).y(2).invoke(&mut cli).unwrap();
+assert_eq!(res, "OK");
 ```
