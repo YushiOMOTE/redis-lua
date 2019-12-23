@@ -59,7 +59,7 @@ let x = 50;
 
 let script = lua!(
     local v = $a * $b * $c
-    if v > $@ then
+    if v > @x then
         return v .. " is large"
     else
         return v .. " is small"
