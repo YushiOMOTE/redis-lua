@@ -79,7 +79,7 @@ Script objects returned by `lua!` are clonable if the captured variables are clo
 
 ### Joining scripts
 
-`+` joins two scripts. The scripts are treated as a single script and evaluted atomically in Redis.
+`+` operator joins two scripts. The scripts are treated as a single script and evaluted atomically in Redis.
 The return value of the first script is discarded. Only the return value of the last script is replied by Redis.
 
 ```rust
@@ -94,4 +94,34 @@ let script = script1 + script2;
 let mut cli = redis::Client::open("redis://127.0.0.1").unwrap();
 let res: String = script.x(20).y(2).invoke(&mut cli).unwrap();
 assert_eq!(res, "OK");
+```
+
+#### Script trait
+
+Any scripts with substitution completed implements `Script` trait. You can pass them around as `Box<dyn Script>`.
+
+```rust
+let script1 = lua! {
+    return 1 + 2;
+};
+
+let x = 10;
+let script2 = lua! {
+    return @x + 2;
+};
+
+let incomplete_script = lua! {
+    return $x + 2;
+};
+let script3 = incomplete_script.x(2);
+
+let boxed1 = Box::new(script1) as Box<dyn redis_lua::Script>;
+let boxed2 = Box::new(script2) as Box<dyn redis_lua::Script>;
+let boxed3 = Box::new(script3) as Box<dyn redis_lua::Script>;
+```
+
+You can also join boxed scripts by `+` operator.
+
+```rust
+let joined_boxed = boxed1 + boxed2 + boxed3;
 ```
