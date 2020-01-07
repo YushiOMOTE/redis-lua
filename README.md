@@ -25,6 +25,15 @@ fn main() {
 }
 ```
 
+### Usage
+
+Add this to your `Cargo.toml`:
+
+```toml
+redis-lua = "0.1"
+redis = "*"
+```
+
 ### Reporting errors
 
 Errors in the Lua script (such as undefined variables) are detected at compile time.
