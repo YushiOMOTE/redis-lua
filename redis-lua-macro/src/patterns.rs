@@ -55,7 +55,7 @@ pub fn to_invoke(t: (usize, &Arg)) -> TokenStream {
 
 pub fn to_bound(t: (usize, &Arg)) -> TokenStream {
     let t = to_type(t);
-    quote! { #t: redis::ToRedisArgs }
+    quote! { #t: redis_lua::redis::ToRedisArgs }
 }
 
 pub fn varlen(script: &Script) -> usize {

@@ -110,9 +110,9 @@ impl<'a> Chain<'a> {
             let bounds = self.bounds();
 
             quote! {
-                fn invoke<T>(self, con: &mut dyn redis::ConnectionLike) -> redis::RedisResult<T>
+                fn invoke<T>(self, con: &mut dyn redis_lua::redis::ConnectionLike) -> redis_lua::redis::RedisResult<T>
                 where
-                    T: redis::FromRedisValue,
+                    T: redis_lua::redis::FromRedisValue,
                     I: redis_lua::Script,
                     Self: Sized,
                     #(#bounds),*
@@ -120,10 +120,10 @@ impl<'a> Chain<'a> {
                     redis_lua::Script::invoke(self, con)
                 }
 
-                fn invoke_async<C, T>(self, con: C) -> redis::RedisFuture<(C, T)>
+                fn invoke_async<C, T>(self, con: C) -> redis_lua::redis::RedisFuture<(C, T)>
                 where
-                    C: redis::aio::ConnectionLike + Clone + Send + 'static,
-                    T: redis::FromRedisValue + Send + 'static,
+                    C: redis_lua::redis::aio::ConnectionLike + Clone + Send + 'static,
+                    T: redis_lua::redis::FromRedisValue + Send + 'static,
                     I: redis_lua::Script,
                     Self: Sized,
                     #(#bounds),*
@@ -207,7 +207,7 @@ impl<'a> Chain<'a> {
                 I: redis_lua::Script,
                 #(#bounds,)*
             {
-                fn apply(&mut self, invoke: &mut redis::ScriptInvocation) {
+                fn apply(&mut self, invoke: &mut redis_lua::redis::ScriptInvocation) {
                     self.inner.apply(invoke);
                     #(#invokes;)*
                 }
@@ -367,7 +367,7 @@ impl<'a> PartialChain<'a> {
                 fn #varname<#vartype>(self, var: #vartype) -> S::Item
                 where
                     S: redis_lua::TakeScript<#tyname>,
-                    #vartype: redis::ToRedisArgs,
+                    #vartype: redis_lua::redis::ToRedisArgs,
                 {
                     let chain = self.chain.#varname(var);
                     let next = self.next;
