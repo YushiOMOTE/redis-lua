@@ -102,18 +102,6 @@ where
     }
 }
 
-// Support addition of boxed scripts.
-impl<T> std::ops::Add<T> for Box<dyn Script>
-where
-    T: Script + 'static,
-{
-    type Output = Box<dyn Script>;
-
-    fn add(self, other: T) -> Self::Output {
-        Box::new(self.join(other))
-    }
-}
-
 /// Take another script as the inner of the script.
 pub trait TakeScript<I> {
     type Item;
