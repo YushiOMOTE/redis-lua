@@ -31,7 +31,6 @@ Add this to your `Cargo.toml`:
 
 ```toml
 redis-lua = "0.1"
-redis = "*"
 ```
 
 ### Reporting errors
@@ -105,7 +104,7 @@ let res: String = script.x(20).y(2).invoke(&mut cli).unwrap();
 assert_eq!(res, "OK");
 ```
 
-#### Script trait
+### Script trait
 
 Any scripts with substitution completed implements `Script` trait. You can pass them around as `Box<dyn Script>`.
 
@@ -129,8 +128,8 @@ let boxed2 = Box::new(script2) as Box<dyn redis_lua::Script>;
 let boxed3 = Box::new(script3) as Box<dyn redis_lua::Script>;
 ```
 
-You can also join boxed scripts by `+` operator.
+If you want to join boxed scripts, use `join` methods.
 
 ```rust
-let joined_boxed = boxed1 + boxed2 + boxed3;
+let joined_boxed = boxed1.join(boxed2).join(boxed3);
 ```
