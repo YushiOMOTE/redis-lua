@@ -64,11 +64,8 @@ impl<'a> Chain<'a> {
                 }
             }
         } else {
-            let name = self.name();
-            let types = self.types();
             let args = self.args();
             let inits_new = self.params_f(|a| quote! { #a: Some(#a) });
-            let inits_self = self.params_f(|a| quote! { #a: self.#a });
 
             quote! {
                 fn new(info: redis_lua::Info, inner: I, #(#args),*) -> Self {
@@ -76,18 +73,6 @@ impl<'a> Chain<'a> {
                         info,
                         inner,
                         #(#inits_new,)*
-                    }
-                }
-
-                fn join<U>(self, new_inner: U) -> #name<redis_lua::ScriptJoin<U, I>, #(#types),*>
-                where
-                    I: redis_lua::Script,
-                    U: redis_lua::Script
-                {
-                    #name {
-                        inner: new_inner.join(self.inner),
-                        info: self.info,
-                        #(#inits_self,)*
                     }
                 }
             }
@@ -142,6 +127,7 @@ impl<'a> Chain<'a> {
         let tyname = self.tyname();
         let name = self.name();
         let types = self.types();
+        let inits_self = self.params_f(|a| quote! { #a: self.#a });
 
         let impl_takeunit = quote! {
             impl<I, I2, #(#types),*> redis_lua::TakeScript<I2> for #tyname
@@ -152,7 +138,11 @@ impl<'a> Chain<'a> {
                 type Item = #name<redis_lua::ScriptJoin<I2, I>, #(#types),*>;
 
                 fn take(self, inner: I2) -> Self::Item {
-                    self.join(inner)
+                    #name {
+                        inner: inner.join(self.inner),
+                        info: self.info,
+                        #(#inits_self,)*
+                    }
                 }
             }
         };
