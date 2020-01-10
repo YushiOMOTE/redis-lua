@@ -6,13 +6,37 @@ pub struct Info {
     /// The script excluding arguments initialization.
     body: &'static str,
     /// The list of arguments.
-    args: &'static [&'static str],
+    args: Vec<Arg>,
 }
 
 impl Info {
     /// Create the new script information.
-    pub fn new(script: &'static str, body: &'static str, args: &'static [&'static str]) -> Self {
+    pub fn new(script: &'static str, body: &'static str, args: Vec<Arg>) -> Self {
         Self { script, body, args }
+    }
+
+    pub fn update_pack(&mut self, index: usize, pack: bool) {
+        self.args[index].update_pack(pack);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Arg {
+    name: &'static str,
+    pack: bool,
+}
+
+impl Arg {
+    pub fn new(name: &'static str) -> Self {
+        Self { name, pack: false }
+    }
+
+    pub fn update_pack(&mut self, pack: bool) {
+        self.pack = pack;
+    }
+
+    pub fn pack(&self) -> bool {
+        self.pack
     }
 }
 
@@ -112,26 +136,27 @@ pub trait TakeScript<I> {
 
 /// Generate a script from a list of script information.
 pub fn gen_script(info: &[Info]) -> redis::Script {
-    if info.len() == 1 {
-        // Single script
-        let script = info.get(0).expect("At leasts one script must exist").script;
-        redis::Script::new(script)
-    } else {
-        // Generate the joined script.
-        let mut arg_index = 0;
-        let mut script = String::new();
-        let last = info.len() - 1;
-        for (index, info) in info.iter().enumerate() {
-            let prefix = if index == last { "return " } else { "" };
-            let mut init = String::new();
+    assert!(info.len() > 0, "No script information");
 
-            for arg in info.args {
-                arg_index += 1;
-                init += &format!("local {} = ARGV[{}] ", arg, arg_index);
+    // Generate the joined script.
+    let mut arg_index = 0;
+    let mut script = String::new();
+    let last = info.len() - 1;
+    for (index, info) in info.iter().enumerate() {
+        let prefix = if index == last { "return " } else { "" };
+        let mut init = String::new();
+
+        for arg in &info.args {
+            arg_index += 1;
+
+            if arg.pack() {
+                init += &format!("local {} = cmsgpack.unpack(ARGV[{}]) ", arg.name, arg_index);
+            } else {
+                init += &format!("local {} = ARGV[{}] ", arg.name, arg_index);
             }
-
-            script += &format!("{}(function() {} {} end)();\n", prefix, init, info.body);
         }
-        redis::Script::new(&script)
+
+        script += &format!("{}(function() {} {} end)();\n", prefix, init, info.body);
     }
+    redis::Script::new(&script)
 }

@@ -51,7 +51,7 @@ impl<'a> Chain<'a> {
             let name = prev.tyname();
             let varparam = prev.varparam();
             let vartype = prev.vartype();
-            let inits = prev.params_f(|a| quote! { #a: prev.#a });
+            let inits = prev.params_f(|_, a| quote! { #a: prev.#a });
 
             quote! {
                 fn chain(prev: #name, var: #vartype) -> Self {
@@ -65,7 +65,7 @@ impl<'a> Chain<'a> {
             }
         } else {
             let args = self.args();
-            let inits_new = self.params_f(|a| quote! { #a: Some(#a) });
+            let inits_new = self.params_f(|_, a| quote! { #a: Some(#a) });
 
             quote! {
                 fn new(info: redis_lua::Info, inner: I, #(#args),*) -> Self {
@@ -92,7 +92,7 @@ impl<'a> Chain<'a> {
                 }
             }
         } else {
-            let bounds = self.bounds();
+            let bounds = self.args_bounds();
 
             quote! {
                 fn invoke<T>(self, con: &mut dyn redis_lua::redis::ConnectionLike) -> redis_lua::redis::RedisResult<T>
@@ -127,7 +127,7 @@ impl<'a> Chain<'a> {
         let tyname = self.tyname();
         let name = self.name();
         let types = self.types();
-        let inits_self = self.params_f(|a| quote! { #a: self.#a });
+        let inits_self = self.params_f(|_, a| quote! { #a: self.#a });
 
         let impl_takeunit = quote! {
             impl<I, I2, #(#types),*> redis_lua::TakeScript<I2> for #tyname
@@ -188,8 +188,11 @@ impl<'a> Chain<'a> {
 
         let tyname = self.tyname();
         let types = self.types();
-        let bounds = self.bounds();
+        let bounds = self.packer_bounds();
         let invokes = self.invokes();
+        let update_info = self.params_f(
+            |i, a| quote! { new_info.update_pack(#i, self.#a.as_ref().unwrap().pack()); },
+        );
 
         quote! {
             impl<I, #(#types),*> redis_lua::Script for #tyname
@@ -204,7 +207,9 @@ impl<'a> Chain<'a> {
 
                 fn info(&self, info: &mut Vec<redis_lua::Info>) {
                     self.inner.info(info);
-                    info.push(self.info.clone());
+                    let mut new_info = self.info.clone();
+                    #(#update_info;)*
+                    info.push(new_info);
                 }
             }
         }
@@ -269,9 +274,13 @@ impl<'a> Chain<'a> {
 
     fn params_f<F>(&self, map: F) -> Vec<TokenStream>
     where
-        F: Fn(TokenStream) -> TokenStream,
+        F: Fn(usize, TokenStream) -> TokenStream,
     {
-        self.params().into_iter().map(map).collect()
+        self.params()
+            .into_iter()
+            .enumerate()
+            .map(|(i, t)| map(i, t))
+            .collect()
     }
 
     // a0: A0, a1: A1, a2: A2, ...
@@ -306,14 +315,22 @@ impl<'a> Chain<'a> {
     }
 
     // `A0: redis_lua::ToRedisArgs`, ...
-    fn bounds(&self) -> Vec<TokenStream> {
+    fn args_bounds(&self) -> Vec<TokenStream> {
         caps(self.script)
-            .map(to_bound)
-            .chain(vars(self.script).map(to_bound).take(self.index))
+            .map(to_args_bound)
+            .chain(vars(self.script).map(to_args_bound).take(self.index))
             .collect()
     }
 
-    // `A0: redis_lua::ToRedisArgs`, ...
+    // `A0: redis_lua::Packer`, ...
+    fn packer_bounds(&self) -> Vec<TokenStream> {
+        caps(self.script)
+            .map(to_packer_bound)
+            .chain(vars(self.script).map(to_packer_bound).take(self.index))
+            .collect()
+    }
+
+    // `invoke.arg(self.a1)`, ...
     fn invokes(&self) -> Vec<TokenStream> {
         all(self.script).map(to_invoke).collect()
     }

@@ -156,6 +156,7 @@
 use proc_macro_hack::proc_macro_hack;
 
 mod script;
+mod types;
 
 pub use redis;
 
@@ -165,4 +166,5 @@ pub use redis_lua_macro::lua;
 #[proc_macro_hack]
 pub use redis_lua_macro::lua_s;
 
-pub use script::{gen_script, Info, Script, ScriptJoin, TakeScript};
+pub use script::{gen_script, Arg, Info, Script, ScriptJoin, TakeScript};
+pub use types::{Pack, Packer};

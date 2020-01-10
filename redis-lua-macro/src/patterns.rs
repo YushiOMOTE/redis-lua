@@ -49,13 +49,18 @@ pub fn to_arg(t: (usize, &Arg)) -> TokenStream {
 pub fn to_invoke(t: (usize, &Arg)) -> TokenStream {
     let p = to_param(t);
     quote! {
-        invoke.arg(self.#p.take().unwrap())
+        invoke.arg(redis_lua::Packer::new(self.#p.take().unwrap()))
     }
 }
 
-pub fn to_bound(t: (usize, &Arg)) -> TokenStream {
+pub fn to_args_bound(t: (usize, &Arg)) -> TokenStream {
     let t = to_type(t);
-    quote! { #t: redis_lua::redis::ToRedisArgs }
+    quote! { #t: redis_lua::Pack }
+}
+
+pub fn to_packer_bound(t: (usize, &Arg)) -> TokenStream {
+    let t = to_type(t);
+    quote! { #t: redis_lua::Pack }
 }
 
 pub fn varlen(script: &Script) -> usize {
