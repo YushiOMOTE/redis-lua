@@ -169,8 +169,6 @@ impl Script {
             "".into()
         };
 
-        // println!("--- Lua script ---\n{}\n-------", script);
-
         Self {
             script,
             wrapped,

@@ -5,6 +5,8 @@ authors = ["YushiOMOTE <yushiomote@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+serde = "1.0"
+rmp-serde = "0.14"
 redis-lua-macro = { path = "../redis-lua-macro" }
 proc-macro-hack = "0.5"
 redis = "0.13"
