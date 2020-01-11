@@ -92,7 +92,7 @@ impl<'a> Chain<'a> {
                 }
             }
         } else {
-            let bounds = self.args_bounds();
+            let bounds = self.bounds();
 
             quote! {
                 fn invoke<T>(self, con: &mut dyn redis_lua::redis::ConnectionLike) -> redis_lua::redis::RedisResult<T>
@@ -188,10 +188,9 @@ impl<'a> Chain<'a> {
 
         let tyname = self.tyname();
         let types = self.types();
-        let bounds = self.packer_bounds();
-        let invokes = self.invokes();
-        let update_info = self.params_f(
-            |i, a| quote! { new_info.update_pack(#i, self.#a.as_ref().unwrap().pack()); },
+        let bounds = self.bounds();
+        let writers = self.params_f(
+            |_, a| quote! { writers.push(redis_lua::writer(self.#a.as_ref().unwrap())); },
         );
 
         quote! {
@@ -200,16 +199,10 @@ impl<'a> Chain<'a> {
                 I: redis_lua::Script,
                 #(#bounds,)*
             {
-                fn apply(&mut self, invoke: &mut redis_lua::redis::ScriptInvocation) {
-                    self.inner.apply(invoke);
-                    #(#invokes;)*
-                }
-
-                fn info(&self, info: &mut Vec<redis_lua::Info>) {
-                    self.inner.info(info);
-                    let mut new_info = self.info.clone();
-                    #(#update_info;)*
-                    info.push(new_info);
+                fn info(&self, info: &mut Vec<redis_lua::Info>, writers: &mut Vec<redis_lua::Writer>) {
+                    self.inner.info(info, writers);
+                    info.push(self.info.clone());
+                    #(#writers)*
                 }
             }
         }
@@ -314,25 +307,12 @@ impl<'a> Chain<'a> {
         vars(self.script).map(to_type).nth(self.index).unwrap()
     }
 
-    // `A0: redis_lua::ToRedisArgs`, ...
-    fn args_bounds(&self) -> Vec<TokenStream> {
+    // `A0: redis_lua::serde::Serialize`, ...
+    fn bounds(&self) -> Vec<TokenStream> {
         caps(self.script)
-            .map(to_args_bound)
-            .chain(vars(self.script).map(to_args_bound).take(self.index))
+            .map(to_bound)
+            .chain(vars(self.script).map(to_bound).take(self.index))
             .collect()
-    }
-
-    // `A0: redis_lua::Packer`, ...
-    fn packer_bounds(&self) -> Vec<TokenStream> {
-        caps(self.script)
-            .map(to_packer_bound)
-            .chain(vars(self.script).map(to_packer_bound).take(self.index))
-            .collect()
-    }
-
-    // `invoke.arg(self.a1)`, ...
-    fn invokes(&self) -> Vec<TokenStream> {
-        all(self.script).map(to_invoke).collect()
     }
 }
 
