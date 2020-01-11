@@ -44,3 +44,24 @@ fn map() {
         return {@map[3], @map[4], @map[5]}
     }, vec!["a".to_owned(), "b".into(), "c".into()]);
 }
+
+#[test]
+fn custom() {
+    #[derive(serde::Serialize)]
+    struct A {
+        a: usize,
+        b: String,
+        c: bool,
+    }
+
+    let a = A {
+        a: 32,
+        b: "hello".into(),
+        c: true,
+    };
+
+    test!((bool, String, usize) {
+        local a = @a;
+        return {a["c"], a["b"], a["a"]}
+    }, (true, "hello".into(), 32));
+}

@@ -102,7 +102,7 @@
 //!
 //! # Capturing a variable
 //!
-//! `@` with an identifier allows to capture a Rust variable in the script. It allows to capture any types which implement [`redis::ToRedisArgs`][].
+//! `@` with an identifier allows to capture a Rust variable in the script. It allows to capture any types which implement [`serde::Serialize`][].
 //!
 //! ```rust
 //! # use redis_lua::lua;
@@ -120,7 +120,7 @@
 //!
 //! # Argument substitution
 //!
-//! `$` with an identifier allows to substitute a variable before actually running the script. Same as `@`, any types which implement [`redis::ToRedisArgs`][] can be substituted.
+//! `$` with an identifier allows to substitute a variable before actually running the script. Same as `@`, any types which implement [`serde::Serialize`][] can be substituted.
 //!
 //! ```rust
 //! # use redis_lua::lua;
@@ -153,12 +153,15 @@
 //!
 //! The script object is clonable if all the variables it captures are clonable or it captures no variables.
 //!
+#![feature(specialization)]
+
 use proc_macro_hack::proc_macro_hack;
 
 mod script;
 mod types;
 
 pub use redis;
+pub use serde;
 
 #[proc_macro_hack]
 pub use redis_lua_macro::lua;
@@ -166,5 +169,5 @@ pub use redis_lua_macro::lua;
 #[proc_macro_hack]
 pub use redis_lua_macro::lua_s;
 
-pub use script::{gen_script, Arg, Info, Script, ScriptJoin, TakeScript};
-pub use types::{Pack, Packer};
+pub use script::{gen_script, Info, Script, ScriptJoin, TakeScript};
+pub use types::{writer, Writer};

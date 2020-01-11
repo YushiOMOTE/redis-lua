@@ -60,23 +60,21 @@ pub fn lua(input: TokenStream1) -> TokenStream1 {
 
     let args = all(&script).map(|(_, arg)| {
         let arg = arg.as_lua().to_string();
-        quote! { redis_lua::Arg::new(#arg) }
+        quote! { #arg }
     });
 
     let caps = caps(&script).map(|(_, arg)| {
         let arg = to_ident(arg.as_rust());
-        quote! {
-            #arg
-        }
+        quote! { #arg }
     });
 
     let script_code = quote! {
         {
-            use redis_lua::{Script, Packer};
+            use redis_lua::Script;
 
             #defs
 
-            Chain0::new(redis_lua::Info::new(#script_str, #body_str, vec![#(#args),*]), (), #(#caps),*)
+            Chain0::new(redis_lua::Info::new(#script_str, #body_str, &[#(#args),*]), (), #(#caps),*)
         }
     };
     script_code.into()
