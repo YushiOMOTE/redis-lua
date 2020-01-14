@@ -153,6 +153,29 @@
 //!
 //! The script object is clonable if all the variables it captures are clonable or it captures no variables.
 //!
+//! # Type conversion
+//!
+//! `@` and `$` allow to pass Rust variables to Lua scripts. Primitive types and strings are converted to
+//! the corresponding primitive types/strings in Lua scripts.
+//! A byte vector such as `&[u8]` is converted to a Lua string.
+//!
+//! Complicated types such as structs, tuples, maps and non-u8 vectors are converted to Lua tables.
+//! The name of struct members become the key of tables.
+//!
+//! While a single u8 vector is converted to a Lua string, u8 vectors which appear inside a complicated type
+//! is converted to Lua tables by default. To convert them to Lua strings, use [`serde_bytes`][] as follows.
+//!
+//! ```rust
+//! # use serde::Serialize;
+//! #[derive(Serialize)]
+//! struct Data {
+//!     table: Vec<u8>,  // This field will be converted to a Lua table of `u8`.
+//!     #[serde(with = "serde_bytes")]
+//!     string: Vec<u8>, // This field will be converted to a Lua string.
+//! }
+//! ```
+//!
+
 #![feature(specialization)]
 
 use proc_macro_hack::proc_macro_hack;

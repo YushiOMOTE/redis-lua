@@ -11,3 +11,4 @@ redis-lua-macro = { path = "../redis-lua-macro" }
 proc-macro-hack = "0.5"
 redis = "0.13"
 futures = "0.1"
+serde_bytes = "0.11"
