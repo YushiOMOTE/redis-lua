@@ -10,7 +10,7 @@ proc-macro = true
 [dependencies]
 quote = "1.0"
 mktemp = "0.4"
-selene-lib = "0.4"
+selene-lib = { version = "0.5.2", default-features = false }
 full_moon = "0.4.0-rc.12"
 toml = "0.5"
 proc-macro2 = "1.0"
