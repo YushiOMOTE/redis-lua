@@ -104,7 +104,10 @@ impl Write for Writer {
     }
 }
 
-type RmpSerializer<W> = rmp_serde::ext::StructMapSerializer<rmp_serde::encode::Serializer<W>>;
+type RmpSerializer<W> = rmp_serde::encode::Serializer<
+    W,
+    rmp_serde::config::StructMapConfig<rmp_serde::config::DefaultConfig>,
+>;
 type Result<T> = std::result::Result<T, rmp_serde::encode::Error>;
 
 struct Serializer<W>(RmpSerializer<W>);
@@ -114,8 +117,7 @@ where
     W: Write,
 {
     fn new(w: W) -> Self {
-        let ser = rmp_serde::encode::Serializer::new(w);
-        let ser = rmp_serde::ext::StructMapSerializer::new(ser);
+        let ser = rmp_serde::encode::Serializer::new(w).with_struct_map();
         Self(ser)
     }
 }
