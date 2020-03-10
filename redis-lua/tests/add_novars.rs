@@ -1,5 +1,5 @@
-#[test]
-fn addvar_novars() {
+#[tokio::test]
+async fn addvar_novars() {
     let script1 = redis_lua::lua!(
         return 10;
     );

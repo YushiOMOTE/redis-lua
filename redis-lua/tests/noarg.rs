@@ -1,5 +1,5 @@
-#[test]
-fn noarg() {
+#[tokio::test]
+async fn noarg() {
     let script = redis_lua::lua!(
         return 1 + 3 + 10;
     );

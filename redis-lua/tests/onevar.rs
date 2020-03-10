@@ -1,5 +1,5 @@
-#[test]
-fn onevar() {
+#[tokio::test]
+async fn onevar() {
     let script = redis_lua::lua!(
         return $a + 10;
     );

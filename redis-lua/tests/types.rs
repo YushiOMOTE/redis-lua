@@ -1,8 +1,8 @@
 #[macro_use]
 mod util;
 
-#[test]
-fn vec() {
+#[tokio::test]
+async fn vec() {
     let vec = vec![1usize, 2, 3];
     test!(usize {
         local sum = 0
@@ -33,8 +33,8 @@ fn vec() {
     }, 0);
 }
 
-#[test]
-fn map() {
+#[tokio::test]
+async fn map() {
     let mut map = std::collections::BTreeMap::new();
     map.insert(3, "a");
     map.insert(4, "b");
@@ -45,8 +45,8 @@ fn map() {
     }, vec!["a".to_owned(), "b".into(), "c".into()]);
 }
 
-#[test]
-fn custom() {
+#[tokio::test]
+async fn custom() {
     #[derive(serde::Serialize)]
     struct A {
         a: usize,

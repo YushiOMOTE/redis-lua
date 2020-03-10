@@ -1,5 +1,5 @@
-#[test]
-fn addvar() {
+#[tokio::test]
+async fn addvar() {
     let script1 = redis_lua::lua!(
         return redis.call("set", "a", $x);
     );

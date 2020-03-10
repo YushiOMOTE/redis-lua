@@ -1,5 +1,5 @@
-#[test]
-fn morevars() {
+#[tokio::test]
+async fn morevars() {
     let script = redis_lua::lua!(
         return $a + $b + 10 + $c + 10 + $d;
     );

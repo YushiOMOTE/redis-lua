@@ -1,5 +1,5 @@
-#[test]
-fn onearg() {
+#[tokio::test]
+async fn onearg() {
     let a = 10;
     let script = redis_lua::lua!(
         return @a + 10;

@@ -1,25 +1,25 @@
 use redis_lua::{lua, Script};
 
-fn do1(script: Box<dyn Script>) {
+async fn do1(script: Box<dyn Script>) {
     let mut cli = redis::Client::open("redis://127.0.0.1").unwrap();
     let res: usize = script.invoke(&mut cli).unwrap();
     assert_eq!(res, 3);
 }
 
-fn do2(script: Box<dyn Script>) {
+async fn do2(script: Box<dyn Script>) {
     let mut cli = redis::Client::open("redis://127.0.0.1").unwrap();
     let res: usize = script.invoke(&mut cli).unwrap();
     assert_eq!(res, 12);
 }
 
-fn do3(script: Box<dyn Script>) {
+async fn do3(script: Box<dyn Script>) {
     let mut cli = redis::Client::open("redis://127.0.0.1").unwrap();
     let res: usize = script.invoke(&mut cli).unwrap();
     assert_eq!(res, 4);
 }
 
-#[test]
-fn pass_around() {
+#[tokio::test]
+async fn pass_around() {
     let script1 = lua! {
         return 1 + 2;
     };

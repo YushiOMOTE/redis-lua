@@ -183,6 +183,7 @@ use proc_macro_hack::proc_macro_hack;
 mod script;
 mod types;
 
+pub use futures;
 pub use redis;
 pub use serde;
 

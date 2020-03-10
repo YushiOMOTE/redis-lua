@@ -1,5 +1,5 @@
-#[test]
-fn boxed_add() {
+#[tokio::test]
+async fn boxed_add() {
     let x = 10;
     let y = 20;
     let z = 30;
