@@ -1,8 +1,8 @@
 #[macro_use]
 mod util;
 
-#[test]
-fn ops_assign() {
+#[tokio::test]
+async fn ops_assign() {
     // assign number
     test!(i32 {
         local a = 3;
@@ -94,40 +94,40 @@ fn ops_assign() {
     }, vec![9, 3]);
 }
 
-#[test]
-fn ops_arith_add() {
+#[tokio::test]
+async fn ops_arith_add() {
     test!(i32 { return  3 + 4 }, 7);
     test!(i32 { return  -3 + 4 }, 1);
     test!(i32 { return  3 + -4 }, -1);
     test!(i32 { return  -3 + -4 }, -7);
 }
 
-#[test]
-fn ops_arith_sub() {
+#[tokio::test]
+async fn ops_arith_sub() {
     test!(i32 { return  3 - 4; }, -1);
     test!(i32 { return  -3 - 4; }, -7);
     test!(i32 { return  3 - -4; }, 7);
     test!(i32 { return  -3 - -4; }, 1);
 }
 
-#[test]
-fn ops_arith_mul() {
+#[tokio::test]
+async fn ops_arith_mul() {
     test!(i32 { return  3 * 4; }, 12);
     test!(i32 { return  -3 * 4; }, -12);
     test!(i32 { return  3 * -4; }, -12);
     test!(i32 { return  -3 * -4; }, 12);
 }
 
-#[test]
-fn ops_arith_div() {
+#[tokio::test]
+async fn ops_arith_div() {
     test!(i32 { return  4 / 4; }, 1);
     test!(i32 { return  -8 / 4; }, -2);
     test!(i32 { return  8 / -4; }, -2);
     test!(i32 { return  -8 / -4; }, 2);
 }
 
-#[test]
-fn ops_rel() {
+#[tokio::test]
+async fn ops_rel() {
     test!(bool { return  4 == 4; }, true);
     test!(bool { return  4 ~= 4; }, false);
     test!(bool { return  4 > 4; }, false);
@@ -136,8 +136,8 @@ fn ops_rel() {
     test!(bool { return  -8 <= -4; }, true);
 }
 
-#[test]
-fn ops_logical() {
+#[tokio::test]
+async fn ops_logical() {
     test!(u32 { return 4 and 5; }, 5);
     test!(Option<u32> { return nil and 5; }, None);
     test!(usize { return 4 or 5; }, 4);
@@ -145,8 +145,8 @@ fn ops_logical() {
     test!(bool { return not false; }, true);
 }
 
-#[test]
-fn ops_trinary() {
+#[tokio::test]
+async fn ops_trinary() {
     test!(u32 { return true and 3 or 2; }, 3);
     test!(u32 {
         local x = 10;
@@ -155,14 +155,14 @@ fn ops_trinary() {
     }, 2);
 }
 
-#[test]
-fn ops_concat() {
+#[tokio::test]
+async fn ops_concat() {
     test!(String { return "hello" .. "world"; }, "helloworld");
     test!(String { local a = "hello" return a .. "world"; }, "helloworld");
 }
 
-#[test]
-fn ops_precedence() {
+#[tokio::test]
+async fn ops_precedence() {
     test!(bool {
         local a = 8;
         local b = 10;
@@ -206,8 +206,8 @@ fn ops_precedence() {
     }, 64);
 }
 
-#[test]
-fn table_ctor() {
+#[tokio::test]
+async fn table_ctor() {
     test!(Vec<String> {
         return {"A", "B", "C"}
     }, vec!["A".to_owned(), "B".into(), "C".into()]);
@@ -265,8 +265,8 @@ fn table_ctor() {
           vec!["one".to_owned(), "two".into(), "three".into()]);
 }
 
-#[test]
-fn ctrl() {
+#[tokio::test]
+async fn ctrl() {
     test!(usize {
         local a = -10;
         if a < 0 then a = 0 end;
@@ -373,8 +373,8 @@ fn ctrl() {
     }, 1);
 }
 
-#[test]
-fn types_bool() {
+#[tokio::test]
+async fn types_bool() {
     test!(bool { return true }, true);
     test!(bool { return false }, false);
     test!(bool { return 1 }, true);
@@ -382,8 +382,8 @@ fn types_bool() {
     test!(bool { return nil }, false);
 }
 
-#[test]
-fn types_num() {
+#[tokio::test]
+async fn types_num() {
     test!(usize { return 4 }, 4);
     // Indeed, Redis protocol doesn't support floating points.
     test!(f64 { return 0.4 }, 0.0);
@@ -394,8 +394,8 @@ fn types_num() {
     // test!(bool { return 5e+20 == 5e+20 }, true);
 }
 
-#[test]
-fn types_string() {
+#[tokio::test]
+async fn types_string() {
     test!(String { return "one string" }, "one string");
     // Indeed, a single quotation is not supported by Rust.
     // test!(String { return 'one string' }, "one string");
@@ -436,8 +436,8 @@ fn types_string() {
     test!(String { return tostring(10) }, "10");
 }
 
-#[test]
-fn table() {
+#[tokio::test]
+async fn table() {
     test!(Vec<String> { return {} }, Vec::<String>::new());
     test!(usize { local a = {} local k = "x" a[k] = 10 return a[k] }, 10);
     test!(usize { local a = {} local k = "x" a[k] = 10 return a["x"] + a["x"] }, 20);
@@ -452,8 +452,8 @@ fn table() {
     }, v);
 }
 
-#[test]
-fn func() {
+#[tokio::test]
+async fn func() {
     test!(Vec<String> {
         local logtable = {}
 

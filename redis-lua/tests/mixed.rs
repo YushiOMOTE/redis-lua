@@ -1,5 +1,5 @@
-#[test]
-fn mixed() {
+#[tokio::test]
+async fn mixed() {
     let y = 3;
     let script = redis_lua::lua!(
         return $x + @y + 10;

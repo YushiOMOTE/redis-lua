@@ -1,5 +1,5 @@
-#[test]
-fn twovars() {
+#[tokio::test]
+async fn twovars() {
     let script = redis_lua::lua!(
         return $a + $b + 10;
     );

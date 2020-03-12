@@ -51,6 +51,11 @@ pub fn to_bound(t: (usize, &Arg)) -> TokenStream {
     quote! { #t: redis_lua::serde::Serialize }
 }
 
+pub fn to_bound_life(t: (usize, &Arg)) -> TokenStream {
+    let t = to_type(t);
+    quote! { #t: redis_lua::serde::Serialize + 'a }
+}
+
 pub fn varlen(script: &Script) -> usize {
     vars(script).count()
 }

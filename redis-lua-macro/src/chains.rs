@@ -93,6 +93,7 @@ impl<'a> Chain<'a> {
             }
         } else {
             let bounds = self.bounds();
+            let bounds_life = self.bounds_life();
 
             quote! {
                 fn invoke<T>(self, con: &mut dyn redis_lua::redis::ConnectionLike) -> redis_lua::redis::RedisResult<T>
@@ -105,15 +106,19 @@ impl<'a> Chain<'a> {
                     redis_lua::Script::invoke(self, con)
                 }
 
-                fn invoke_async<C, T>(self, con: C) -> redis_lua::redis::RedisFuture<(C, T)>
+                fn invoke_async<'a, C, T>(self, con: &'a mut C) -> redis_lua::redis::RedisFuture<'a, T>
                 where
-                    C: redis_lua::redis::aio::ConnectionLike + Clone + Send + 'static,
-                    T: redis_lua::redis::FromRedisValue + Send + 'static,
-                    I: redis_lua::Script,
-                    Self: Sized,
-                    #(#bounds),*
+                    C: redis_lua::redis::aio::ConnectionLike + Send,
+                    T: redis_lua::redis::FromRedisValue + Send,
+                    I: redis_lua::Script + 'a,
+                    Self: Sized + Send,
+                    #(#bounds_life),*
                 {
-                    redis_lua::Script::invoke_async(self, con)
+                    use redis_lua::futures::prelude::*;
+
+                    async move {
+                        redis_lua::Script::invoke_async(self, con).await
+                    }.boxed()
                 }
             }
         }
@@ -312,6 +317,14 @@ impl<'a> Chain<'a> {
         caps(self.script)
             .map(to_bound)
             .chain(vars(self.script).map(to_bound).take(self.index))
+            .collect()
+    }
+
+    // `A0: redis_lua::serde::Serialize`, ...
+    fn bounds_life(&self) -> Vec<TokenStream> {
+        caps(self.script)
+            .map(to_bound_life)
+            .chain(vars(self.script).map(to_bound_life).take(self.index))
             .collect()
     }
 }
