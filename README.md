@@ -2,6 +2,11 @@
 
 Lua scripting helper for [redis-rs](https://github.com/mitsuhiko/redis-rs).
 
+[![Latest version](https://img.shields.io/crates/v/redis-lua.svg)](https://crates.io/crates/redis-lua)
+[![Documentation](https://docs.rs/redis-lua/badge.svg)](https://docs.rs/redis-lua)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![Actions Status](https://github.com/YushiOMOTE/redis-lua/workflows/Rust/badge.svg)](https://github.com/YushiOMOTE/redis-lua/actions)
+
 * Compile-time lint for Redis Lua script.
 * Capturing Rust variables in Lua script.
 * Safe argument substitution.
