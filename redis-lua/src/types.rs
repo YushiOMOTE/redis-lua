@@ -2,6 +2,7 @@ use redis::{RedisWrite, ToRedisArgs};
 use serde::{ser, Serialize};
 use std::io::{self, Write};
 
+#[doc(hidden)]
 pub fn writer<S: Serialize + ?Sized>(arg: &S) -> Writer {
     arg.to_writer()
 }
@@ -57,6 +58,7 @@ fn pack<S: Serialize + ?Sized>(arg: &S) -> Vec<u8> {
     buf
 }
 
+#[doc(hidden)]
 pub struct Writer {
     buf: Vec<u8>,
     pack: bool,
