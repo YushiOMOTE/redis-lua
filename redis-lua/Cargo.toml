@@ -9,7 +9,7 @@ homepage = "https://github.com/yushiomote/redis-lua"
 repository = "https://github.com/yushiomote/redis-lua"
 documentation = "https://docs.rs/redis-lua"
 license = "BSD-3-Clause"
-readme = "README.md"
+readme = "../README.md"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
