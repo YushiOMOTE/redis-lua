@@ -3,6 +3,13 @@ name = "redis-lua-macro"
 version = "0.2.0"
 authors = ["YushiOMOTE <yushiomote@gmail.com>"]
 edition = "2018"
+keywords = ["redis", "database"]
+description = "Macro component of Redis Lua scripting helper"
+homepage = "https://github.com/yushiomote/redis-lua"
+repository = "https://github.com/yushiomote/redis-lua"
+documentation = "https://docs.rs/redis-lua"
+license = "BSD-3-Clause"
+readme = "README.md"
 
 [lib]
 proc-macro = true
