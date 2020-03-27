@@ -187,9 +187,11 @@ pub use futures;
 pub use redis;
 pub use serde;
 
+/// Macro to embed Lua script in Rust code.
 #[proc_macro_hack]
 pub use redis_lua_macro::lua;
 
+/// Macro to convert Lua script to string.
 #[proc_macro_hack]
 pub use redis_lua_macro::lua_s;
 

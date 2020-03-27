@@ -30,7 +30,7 @@ fn main() {
 Add this to your `Cargo.toml`:
 
 ```toml
-redis-lua = "0.1"
+redis-lua = "0.2"
 ```
 
 ### Reporting errors
@@ -132,4 +132,28 @@ If you want to join boxed scripts, use `join` methods.
 
 ```rust
 let joined_boxed = boxed1.join(boxed2).join(boxed3);
+```
+
+### Async support
+
+Supports async-await.
+
+```rust
+use redis_lua::lua;
+
+#[tokio::main]
+async fn main() {
+    let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+    let mut con = client.get_multiplexed_tokio_connection().await.unwrap();
+
+    let msg = "Hello Lua";
+    let num = 42;
+
+    let script = lua!(
+        return @msg .. " / " .. @num
+    );
+
+    let v: String = script.invoke_async(&mut con).await.unwrap();
+    println!("result: {}", v);
+}
 ```
