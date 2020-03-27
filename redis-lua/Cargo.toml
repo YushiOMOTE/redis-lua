@@ -14,7 +14,7 @@ readme = "../README.md"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 rmp-serde = "0.14"
-redis-lua-macro = { path = "../redis-lua-macro" }
+redis-lua-macro = { version = "0.2", path = "../redis-lua-macro" }
 proc-macro-hack = "0.5"
 redis = { version = "0.15", features = ["tokio-rt-core"] }
 futures = "0.3"
