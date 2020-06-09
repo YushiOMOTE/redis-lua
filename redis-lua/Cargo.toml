@@ -13,6 +13,7 @@ readme = "../README.md"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
+rmp = "0.8"
 rmp-serde = "0.14"
 redis-lua-macro = { version = "0.2", path = "../redis-lua-macro" }
 proc-macro-hack = "0.5"

@@ -196,4 +196,5 @@ pub use redis_lua_macro::lua;
 pub use redis_lua_macro::lua_s;
 
 pub use script::{gen_script, Info, Script, ScriptJoin, TakeScript};
-pub use types::{writer, Writer};
+
+pub use types::{script_arg, ScriptArg};
