@@ -176,8 +176,6 @@
 //! ```
 //!
 
-#![feature(specialization)]
-
 use proc_macro_hack::proc_macro_hack;
 
 mod script;
