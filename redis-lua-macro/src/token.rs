@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use proc_macro::{Delimiter, LineColumn, Span, TokenStream, TokenTree};
+use proc_macro::{Delimiter, Span, TokenStream, TokenTree};
 use std::{
     fmt::{self, Display, Formatter},
     iter::IntoIterator,
@@ -13,6 +13,10 @@ pub struct Pos {
 }
 
 impl Pos {
+    fn new(line: usize, column: usize) -> Self {
+        Self { line, column }
+    }
+
     fn left(&self) -> Self {
         Self {
             line: self.line,
@@ -28,13 +32,47 @@ impl Pos {
     }
 }
 
-impl From<LineColumn> for Pos {
-    fn from(v: LineColumn) -> Self {
-        Pos {
-            line: v.line,
-            column: v.column,
-        }
+#[cfg(unstable)]
+fn span_pos(span: &Span) -> (Pos, Pos) {
+    let start = span.start();
+    let end = span.end();
+    (
+        Pos::new(start.line, start.column),
+        Pos::new(end.line, end.column),
+    )
+}
+
+#[cfg(not(unstable))]
+fn parse_pos(span: &Span) -> (usize, usize) {
+    // Workaround to somehow retrieve location information in span in stable rust :(
+
+    let re = regex::Regex::new(r"bytes\(([0-9]+)\.\.([0-9]+)\)").unwrap();
+    match re.captures(&format!("{:?}", span)) {
+        Some(caps) => match (caps.get(1), caps.get(2)) {
+            (Some(start), Some(end)) => {
+                return (
+                    match start.as_str().parse() {
+                        Ok(v) => v,
+                        _ => 0,
+                    },
+                    match end.as_str().parse() {
+                        Ok(v) => v,
+                        _ => 0,
+                    },
+                )
+            }
+            _ => {}
+        },
+        None => {}
     }
+
+    proc_macro_error::abort_call_site!("Cannot retrieve span information; please use nightly")
+}
+
+#[cfg(not(unstable))]
+fn span_pos(span: &Span) -> (Pos, Pos) {
+    let (start, end) = parse_pos(span);
+    (Pos::new(0, start), Pos::new(0, end))
 }
 
 /// Attribute of token.
@@ -67,22 +105,22 @@ impl std::cmp::Eq for Token {}
 
 impl Token {
     fn new(tree: TokenTree) -> Self {
+        let (start, end) = span_pos(&tree.span());
         Self {
             source: tree.to_string(),
-            start: tree.span().start().into(),
-            end: tree.span().end().into(),
+            start,
+            end,
             tree,
             attr: TokenAttr::None,
         }
     }
 
     fn new_delim(source: String, tree: TokenTree, open: bool) -> Self {
+        let (start, end) = span_pos(&tree.span());
         let (start, end) = if open {
-            let pos: Pos = tree.span().start().into();
-            (pos, pos.right())
+            (start, start.right())
         } else {
-            let pos: Pos = tree.span().end().into();
-            (pos.left(), pos)
+            (end.left(), end)
         };
 
         Self {

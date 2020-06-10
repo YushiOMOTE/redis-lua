@@ -1,4 +1,4 @@
-#![feature(proc_macro_span)]
+#![cfg_attr(unstable, feature(proc_macro_span))]
 
 extern crate proc_macro;
 
