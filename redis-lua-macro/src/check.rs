@@ -1,13 +1,10 @@
-use crate::{
-    file::as_path,
-    proc_macro::{Diagnostic as PDiagnostic, Level as PLevel, Span},
-    script::Script,
-};
+use crate::{file::as_path, proc_macro::Span, script::Script};
 use full_moon::{
     ast::{owned::Owned, AstError},
     tokenizer::Token,
     Error as ParseError,
 };
+use proc_macro_error::{Diagnostic as PDiagnostic, Level as PLevel};
 use selene_lib::{
     rules::Severity, standard_library::StandardLibrary, Checker as SeleneChecker, CheckerConfig,
     CheckerDiagnostic,
@@ -21,14 +18,19 @@ fn convert_level(l: Severity) -> PLevel {
     }
 }
 
-fn convert_diag(span: Vec<Span>, cd: CheckerDiagnostic) -> PDiagnostic {
+fn emit_diag_one(span: Vec<Span>, cd: CheckerDiagnostic) {
     let d = cd.diagnostic;
     let msg = format!("in lua: {} ({})", d.message, d.code);
 
-    let mut pd = PDiagnostic::new(convert_level(cd.severity), msg);
-    pd.set_spans(span);
-    let pd = d.notes.iter().fold(pd, |pd, note| pd.note(note));
-    pd
+    let pd = match span.get(0).cloned() {
+        Some(span) => PDiagnostic::spanned(span.into(), convert_level(cd.severity), msg),
+        None => PDiagnostic::new(convert_level(cd.severity), msg),
+    };
+    let pd = d
+        .notes
+        .iter()
+        .fold(pd, |pd, note| pd.note(note.to_string()));
+    pd.emit()
 }
 
 fn emit_parse_err(script: &Script, msg: &str, token: Option<&Token>) {
@@ -40,8 +42,10 @@ fn emit_parse_err(script: &Script, msg: &str, token: Option<&Token>) {
 
     let msg = format!("in lua: {} (parse_error)", msg);
 
-    let mut pd = PDiagnostic::new(PLevel::Error, msg);
-    pd.set_spans(spans);
+    let pd = match spans.get(0).cloned() {
+        Some(span) => PDiagnostic::spanned(span.into(), PLevel::Error, msg),
+        None => PDiagnostic::new(PLevel::Error, msg),
+    };
     pd.emit();
 }
 
@@ -49,7 +53,7 @@ fn emit_diag(script: &Script, diags: Vec<CheckerDiagnostic>) {
     for d in diags {
         let label = d.diagnostic.primary_label.range;
         let spans = script.range_to_span((label.0 as usize, label.1 as usize));
-        convert_diag(spans.clone(), d).emit();
+        emit_diag_one(spans.clone(), d);
     }
 }
 

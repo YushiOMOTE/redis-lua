@@ -1,10 +1,10 @@
-#![feature(proc_macro_diagnostic)]
 #![feature(proc_macro_span)]
 
 extern crate proc_macro;
 
 use self::proc_macro::{TokenStream as TokenStream1, TokenTree};
 use proc_macro2::TokenStream;
+use proc_macro_error::proc_macro_error;
 use quote::quote;
 
 mod chains;
@@ -45,6 +45,7 @@ fn gen_all(script: &Script) -> TokenStream {
     s
 }
 
+#[proc_macro_error]
 #[proc_macro_hack]
 pub fn lua(input: TokenStream1) -> TokenStream1 {
     let script = Script::new(input, true);
@@ -80,6 +81,7 @@ pub fn lua(input: TokenStream1) -> TokenStream1 {
     script_code.into()
 }
 
+#[proc_macro_error]
 #[proc_macro_hack]
 pub fn lua_s(input: TokenStream1) -> TokenStream1 {
     let script = Script::new(input, false);
