@@ -16,6 +16,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: Build (stable)
+      run: cargo build --verbose
+    - name: Test (stable)
+      run: cargo test --verbose
+      env:
+        RUST_TEST_THREADS: 1
     - name: Install nightly
       uses: actions-rs/toolchain@v1
       with:

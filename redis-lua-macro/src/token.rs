@@ -1,5 +1,6 @@
 use itertools::Itertools;
-use proc_macro::{Delimiter, LineColumn, Span, TokenStream, TokenTree};
+use proc_macro::{Delimiter, Span, TokenStream, TokenTree};
+use proc_macro2::Span as Span2;
 use std::{
     fmt::{self, Display, Formatter},
     iter::IntoIterator,
@@ -13,6 +14,10 @@ pub struct Pos {
 }
 
 impl Pos {
+    fn new(line: usize, column: usize) -> Self {
+        Self { line, column }
+    }
+
     fn left(&self) -> Self {
         Self {
             line: self.line,
@@ -28,13 +33,53 @@ impl Pos {
     }
 }
 
-impl From<LineColumn> for Pos {
-    fn from(v: LineColumn) -> Self {
-        Pos {
-            line: v.line,
-            column: v.column,
-        }
+fn span_pos(span: &Span) -> (Pos, Pos) {
+    let span2: Span2 = span.clone().into();
+    let start = span2.start();
+    let end = span2.end();
+
+    // In stable, line/column information is not provided
+    // and set to 0 (line is 1-indexed)
+    if start.line == 0 || end.line == 0 {
+        return fallback_span_pos(span);
     }
+
+    (
+        Pos::new(start.line, start.column),
+        Pos::new(end.line, end.column),
+    )
+}
+
+fn parse_pos(span: &Span) -> Option<(usize, usize)> {
+    // Workaround to somehow retrieve location information in span in stable rust :(
+
+    let re = regex::Regex::new(r"bytes\(([0-9]+)\.\.([0-9]+)\)").unwrap();
+    match re.captures(&format!("{:?}", span)) {
+        Some(caps) => match (caps.get(1), caps.get(2)) {
+            (Some(start), Some(end)) => Some((
+                match start.as_str().parse() {
+                    Ok(v) => v,
+                    _ => return None,
+                },
+                match end.as_str().parse() {
+                    Ok(v) => v,
+                    _ => return None,
+                },
+            )),
+            _ => None,
+        },
+        None => None,
+    }
+}
+
+fn fallback_span_pos(span: &Span) -> (Pos, Pos) {
+    let (start, end) = match parse_pos(span) {
+        Some(v) => v,
+        None => proc_macro_error::abort_call_site!(
+            "Cannot retrieve span information; please use nightly"
+        ),
+    };
+    (Pos::new(1, start), Pos::new(1, end))
 }
 
 /// Attribute of token.
@@ -67,22 +112,22 @@ impl std::cmp::Eq for Token {}
 
 impl Token {
     fn new(tree: TokenTree) -> Self {
+        let (start, end) = span_pos(&tree.span());
         Self {
             source: tree.to_string(),
-            start: tree.span().start().into(),
-            end: tree.span().end().into(),
+            start,
+            end,
             tree,
             attr: TokenAttr::None,
         }
     }
 
     fn new_delim(source: String, tree: TokenTree, open: bool) -> Self {
+        let (start, end) = span_pos(&tree.span());
         let (start, end) = if open {
-            let pos: Pos = tree.span().start().into();
-            (pos, pos.right())
+            (start, start.right())
         } else {
-            let pos: Pos = tree.span().end().into();
-            (pos.left(), pos)
+            (end.left(), end)
         };
 
         Self {

@@ -194,8 +194,8 @@ impl<'a> Chain<'a> {
         let tyname = self.tyname();
         let types = self.types();
         let bounds = self.bounds();
-        let writers = self.params_f(
-            |_, a| quote! { writers.push(redis_lua::writer(self.#a.as_ref().unwrap())); },
+        let args = self.params_f(
+            |_, a| quote! { args.push(redis_lua::script_arg(self.#a.as_ref().unwrap())); },
         );
 
         quote! {
@@ -204,10 +204,10 @@ impl<'a> Chain<'a> {
                 I: redis_lua::Script,
                 #(#bounds,)*
             {
-                fn info(&self, info: &mut Vec<redis_lua::Info>, writers: &mut Vec<redis_lua::Writer>) {
-                    self.inner.info(info, writers);
+                fn info(&self, info: &mut Vec<redis_lua::Info>, args: &mut Vec<redis_lua::ScriptArg>) {
+                    self.inner.info(info, args);
                     info.push(self.info.clone());
-                    #(#writers)*
+                    #(#args)*
                 }
             }
         }

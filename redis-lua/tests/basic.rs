@@ -58,10 +58,12 @@ async fn ops_assign() {
         local a, b = 10, 2*x
         return a + b
     }, 76);
+    #[cfg(unstable)]
     test!(Option<usize> {
         local a, b, c = 1, 2
         return c
     }, None);
+    #[cfg(unstable)]
     test!(Vec<usize> {
         local a, b = 1, 2, 3;
         return {a, b}
@@ -336,6 +338,7 @@ async fn ctrl() {
         return s
     }, 55);
 
+    #[cfg(unstable)]
     test!(usize {
         local a = {1,3,3,4,2,5,6,1,3,4};
         local value = 5;

@@ -8,8 +8,6 @@
 //! * Safe argument substitution.
 //! * Safely joining multiple Lua scripts.
 //!
-//! redis-lua requires nightly.
-//!
 //! # Invoke a Lua script
 //!
 //! [`lua`][] macro allows to create the Lua script. The script object implements [`Script`][] trait.
@@ -157,26 +155,17 @@
 //!
 //! `@` and `$` allow to pass Rust variables to Lua scripts. Primitive types and strings are converted to
 //! the corresponding primitive types/strings in Lua scripts.
-//! A byte vector such as `&[u8]` is converted to a Lua string.
+//! Non-empty byte sequences (e.g. `Vec<u8>`, `&[u8]`) are converted to a Lua string.
+//! If the sequence is empty, it's converted to an empty table.
 //!
 //! Complicated types such as structs, tuples, maps and non-u8 vectors are converted to Lua tables.
 //! The name of struct members become the key of tables.
 //!
-//! While a single u8 vector is converted to a Lua string, u8 vectors which appear inside a complicated type
-//! is converted to Lua tables by default. To convert them to Lua strings, use [`serde_bytes`][] as follows.
+//! # Limitation
 //!
-//! ```rust
-//! # use serde::Serialize;
-//! #[derive(Serialize)]
-//! struct Data {
-//!     table: Vec<u8>,  // This field will be converted to a Lua table of `u8`.
-//!     #[serde(with = "serde_bytes")]
-//!     string: Vec<u8>, // This field will be converted to a Lua string.
-//! }
-//! ```
+//! * The comment `--` is available only in nightly.
+//! * The warnings are available only in nightly. All the warnings are treated as errors in stable.
 //!
-
-#![feature(specialization)]
 
 use proc_macro_hack::proc_macro_hack;
 
@@ -196,4 +185,5 @@ pub use redis_lua_macro::lua;
 pub use redis_lua_macro::lua_s;
 
 pub use script::{gen_script, Info, Script, ScriptJoin, TakeScript};
-pub use types::{writer, Writer};
+
+pub use types::{script_arg, ScriptArg};
