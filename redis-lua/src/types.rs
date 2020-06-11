@@ -125,7 +125,7 @@ where
     type SerializeStructVariant = Compound<Arg<'a, W>, Map>;
 
     fn serialize_bool(self, v: bool) -> Result<()> {
-        Ok(v.write_redis_args(self.0))
+        Ok((v as usize).write_redis_args(self.0))
     }
 
     fn serialize_i8(self, v: i8) -> Result<()> {
@@ -183,7 +183,7 @@ where
     }
 
     fn serialize_none(self) -> Result<()> {
-        Ok(Vec::<u8>::new().write_redis_args(self.0))
+        Ok(self.write_null())
     }
 
     fn serialize_some<T>(self, value: &T) -> Result<()>
