@@ -38,7 +38,7 @@ async fn pass_around() {
     let boxed2 = Box::new(script2) as Box<dyn redis_lua::Script>;
     let boxed3 = Box::new(script3) as Box<dyn redis_lua::Script>;
 
-    do1(boxed1);
-    do2(boxed2);
-    do3(boxed3);
+    do1(boxed1).await;
+    do2(boxed2).await;
+    do3(boxed3).await;
 }
