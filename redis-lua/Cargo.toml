@@ -24,3 +24,6 @@ redis-lua-macro = { version = "0.2", path = "../redis-lua-macro" }
 rmp-serde = "0.14"
 redis = { version = "0.15", features = ["tokio-rt-core"] }
 tokio = { version = "0.2", features = ["full"] }
+
+[build-dependencies]
+rustc_version = "0.2"
