@@ -12,15 +12,15 @@ license = "BSD-3-Clause"
 readme = "../README.md"
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
+serde = "1.0"
 rmp = "0.8"
-redis-lua-macro = { version = "0.2", path = "../redis-lua-macro" }
 proc-macro-hack = "0.5"
-redis = { version = "0.15", features = ["tokio-rt-core"] }
+redis = "0.15"
 futures = "0.3"
-serde_bytes = "0.11"
 async-trait = "0.1"
+redis-lua-macro = { version = "0.2", path = "../redis-lua-macro" }
 
 [dev-dependencies]
 rmp-serde = "0.14"
+redis = { version = "0.15", features = ["tokio-rt-core"] }
 tokio = { version = "0.2", features = ["full"] }
