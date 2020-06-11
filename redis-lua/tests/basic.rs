@@ -58,10 +58,12 @@ async fn ops_assign() {
         local a, b = 10, 2*x
         return a + b
     }, 76);
+    #[cfg(unstable)]
     test!(Option<usize> {
         local a, b, c = 1, 2
         return c
     }, None);
+    #[cfg(unstable)]
     test!(Vec<usize> {
         local a, b = 1, 2, 3;
         return {a, b}

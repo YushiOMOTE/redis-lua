@@ -14,7 +14,10 @@ use std::include_str;
 fn convert_level(l: Severity) -> PLevel {
     match l {
         Severity::Error => PLevel::Error,
+        #[cfg(unstable)]
         Severity::Warning => PLevel::Warning,
+        #[cfg(not(unstable))]
+        Severity::Warning => PLevel::Error,
     }
 }
 

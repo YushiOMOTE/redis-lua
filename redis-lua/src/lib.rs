@@ -164,7 +164,7 @@
 //! # Limitation
 //!
 //! * The comment `--` is available only in nightly.
-//! * The warnings are available only in nightly.
+//! * The warnings are available only in nightly. All the warnings are treated as errors in stable.
 //!
 
 use proc_macro_hack::proc_macro_hack;
