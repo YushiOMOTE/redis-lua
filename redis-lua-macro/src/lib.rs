@@ -1,5 +1,3 @@
-#![cfg_attr(unstable, feature(proc_macro_span))]
-
 extern crate proc_macro;
 
 use self::proc_macro::{TokenStream as TokenStream1, TokenTree};

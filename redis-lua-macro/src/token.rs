@@ -1,5 +1,6 @@
 use itertools::Itertools;
 use proc_macro::{Delimiter, Span, TokenStream, TokenTree};
+use proc_macro2::Span as Span2;
 use std::{
     fmt::{self, Display, Formatter},
     iter::IntoIterator,
@@ -32,47 +33,53 @@ impl Pos {
     }
 }
 
-#[cfg(unstable)]
 fn span_pos(span: &Span) -> (Pos, Pos) {
-    let start = span.start();
-    let end = span.end();
+    let span2: Span2 = span.clone().into();
+    let start = span2.start();
+    let end = span2.end();
+
+    // In stable, line/column information is not provided
+    // and set to 0 (line is 1-indexed)
+    if start.line == 0 || end.line == 0 {
+        return fallback_span_pos(span);
+    }
+
     (
         Pos::new(start.line, start.column),
         Pos::new(end.line, end.column),
     )
 }
 
-#[cfg(not(unstable))]
-fn parse_pos(span: &Span) -> (usize, usize) {
+fn parse_pos(span: &Span) -> Option<(usize, usize)> {
     // Workaround to somehow retrieve location information in span in stable rust :(
 
     let re = regex::Regex::new(r"bytes\(([0-9]+)\.\.([0-9]+)\)").unwrap();
     match re.captures(&format!("{:?}", span)) {
         Some(caps) => match (caps.get(1), caps.get(2)) {
-            (Some(start), Some(end)) => {
-                return (
-                    match start.as_str().parse() {
-                        Ok(v) => v,
-                        _ => 0,
-                    },
-                    match end.as_str().parse() {
-                        Ok(v) => v,
-                        _ => 0,
-                    },
-                )
-            }
-            _ => {}
+            (Some(start), Some(end)) => Some((
+                match start.as_str().parse() {
+                    Ok(v) => v,
+                    _ => return None,
+                },
+                match end.as_str().parse() {
+                    Ok(v) => v,
+                    _ => return None,
+                },
+            )),
+            _ => None,
         },
-        None => {}
+        None => None,
     }
-
-    proc_macro_error::abort_call_site!("Cannot retrieve span information; please use nightly")
 }
 
-#[cfg(not(unstable))]
-fn span_pos(span: &Span) -> (Pos, Pos) {
-    let (start, end) = parse_pos(span);
-    (Pos::new(0, start), Pos::new(0, end))
+fn fallback_span_pos(span: &Span) -> (Pos, Pos) {
+    let (start, end) = match parse_pos(span) {
+        Some(v) => v,
+        None => proc_macro_error::abort_call_site!(
+            "Cannot retrieve span information; please use nightly"
+        ),
+    };
+    (Pos::new(1, start), Pos::new(1, end))
 }
 
 /// Attribute of token.

@@ -20,7 +20,7 @@ mktemp = "0.4"
 selene-lib = { version = "0.5.2", default-features = false }
 full_moon = "0.4.0-rc.12"
 toml = "0.5"
-proc-macro2 = "1.0"
+proc-macro2 = { version = "1.0", features = ["span-locations"] }
 proc-macro-hack = "0.5"
 proc-macro-error = "1.0"
 itertools = "0.8"
