@@ -1,6 +1,6 @@
 [package]
 name = "redis-lua"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["YushiOMOTE <yushiomote@gmail.com>"]
 edition = "2018"
 keywords = ["redis", "database"]
@@ -18,7 +18,7 @@ proc-macro-hack = "0.5"
 redis = "0.16"
 futures = "0.3"
 async-trait = "0.1"
-redis-lua-macro = { version = "0.3", path = "../redis-lua-macro" }
+redis-lua-macro = { version = "0.4", path = "../redis-lua-macro" }
 
 [dev-dependencies]
 rmp-serde = "0.14"
